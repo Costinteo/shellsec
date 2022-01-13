@@ -1,0 +1,185 @@
+#!/usr/bin/env bash
+
+# +-----------------------------------------------------------------+
+# |  ______ _     _ _______ _       _        ______ _______ _______ |
+# | / _____) |   | |  _____) |     | |      / _____)  _____|  _____)|
+# |( (____ | |___| | |___  | |     | |     ( (____ | |___  | |      |
+# | \____ \|  ___  |  ___) | |     | |      \____ \|  ___) | |      |
+# | _____) ) |   | | |_____| |_____| |_____ _____) ) |_____| |_____ |
+# |(______/|_|   |_|_______)_______)_______)______/|_______)_______)|
+# +-----------------------------------------------------------------+
+# |        Bash tool to generate and manage secure passwords        | 
+# |                                                                 |
+# |                  https://github.com/Costinteo                   |
+# |                           GNU GPL v3                            |
+# +-----------------------------------------------------------------+
+
+# === CLI Arguments ===
+# - Flags -
+MODE=0     # 0 -> NONE, 1 -> STORE, 2 -> LOAD, 3 -> ALL_PLATFORMS
+USAGE=0    # 1 -> PRINT USAGE
+LICENSE=0  # 1 -> PRINT LICENSE
+COLOR=1    # 0 -> COLORS OFF, 1 = COLORS ON
+VERBOSE=0  # 1 -> VERBOSE OUTPUT
+COPY=0     # 1 -> COPY TO CLIPBOARD
+PRINT=0    # 1 -> PRINT GENERATED PASSWORD
+
+# - Arguments -
+PASSLEN=0
+PLATFORM=""
+
+# === Global vars ===
+
+# === Constants ===
+LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
+
+# - Colors -
+GREEN='\033[32;01m'
+YELLOW='\033[33;01m'
+RED='\033[1;31m'
+BLUE='\033[34;01m'
+PURPLE='\033[35m'
+TEXT='\033[0m'
+
+
+usage() {
+	cat <<- _end_of_usage
+	Usage: shellsec [OPTIONS]...
+	Bash tool to generate and manage secure passwords.
+	Run without arguments for interactive mode.
+
+	Options:
+	    -h, --help                print this text and exit
+	        --license             print license and exit
+	        --no-color            suppress colored output
+	    -p, --pass  <LEN>         generate random pass with <LEN> chars
+	    -s, --store <PLATFORM>    store pass for <PLATFORM>
+	    -l, --load  <PLATFORM>    load pass for <PLATFORM>
+	    -a, --all-platforms       decrypt and print all platforms
+	    -c, --copy                copy to clipboard generated / requested pass
+	        --print               print pass after generated
+
+	The script is written by Costinteo. <https://github.com/Costinteo>
+	Licensed under GNU GPL v3. <$LICENSE_LINK>
+	_end_of_usage
+
+	exit 0
+}
+
+# always grabs license from the internet
+license() {
+	wget -q --output-document - "$LICENSE_LINK"
+
+	[ $? -ne 0 ] && printf "${RED}License couldn't be fetched! Check internet connection...${TEXT}\n"
+
+	cleanup
+	exit 0
+}
+
+checkReqs() {
+	openssl version 1>/dev/null 2>&1
+	[ $? -ne 0 ] && printf "${RED}openssl is not installed...${TEXT}\n" && exit 1
+}
+
+suppressColors() {
+	GREEN=''
+	YELLOW=''
+	RED=''
+	BLUE=''
+	PURPLE=''
+	TEXT=''
+}
+
+# prints usage error message in red and exits
+# used when parsing args
+usageError() {
+	local msg=$1
+	printf "${RED}$msg${TEXT} See --help for usage.\n"
+	exit 1
+}
+
+interrupt() {
+	printf "\n${YELLOW}Script interrupted...${TEXT}\n"
+	exit 1
+}
+
+getArgs() {
+	
+	[ $# -eq 0 ] && usage
+
+	while [ $# -ne 0 ]
+	do
+		case "$1" in
+		"-h"|"--help")
+			USAGE=1
+			;;
+
+		"--license")
+			LICENSE=1
+			;;
+
+		"--no-color")
+			COLOR=0
+			;;
+
+		"-p"|"--pass")
+			local numeric='^[0-9]+$'
+			[[ ! "$2" =~ $numeric ]] && usageError "Invalid length for password!"
+			PASSLEN=$2
+			shift
+			;;
+
+		"-s"|"--store")
+			MODE=1
+			;;
+
+		"-l"|"--load")
+			MODE=2
+			;;
+
+		"-a"|"--all-platforms")
+			MODE=3
+			;;
+
+		"-c"|"--copy")
+			COPY=1
+			;;
+
+		"--print")
+			PRINT=1
+			;;
+		*)
+			usageError "Unkown argument!"
+			;;
+		esac
+
+		# if MODE just read, get PLATFORM along with it, if currently empty
+		# if MODE is 3 -> no PLATFORM argument
+		[ $MODE -gt 0 ] && [ $MODE -lt 3 ] && [ -z "$PLATFORM" ] && PLATFORM=${2,,} && shift
+
+		shift
+
+	done
+}
+
+# $1 = password len
+generatePass() {
+	echo $1
+}
+
+# does all the magic
+shellsec() {
+	
+	[ $USAGE -eq 1 ] && usage
+	[ $LICENSE -eq 1 ] && license
+	[ $COLOR -eq 0 ] && suppressColors
+
+}
+
+# === MAIN ===
+
+trap interrupt SIGINT
+
+checkReqs
+getArgs "$@"
+shellsec

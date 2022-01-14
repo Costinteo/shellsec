@@ -28,10 +28,16 @@ PRINT=0    # 1 -> PRINT GENERATED PASSWORD
 PASSLEN=0
 PLATFORM=""
 
-# === Global vars ===
-
 # === Constants ===
 LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
+SECRET_FILE="~/.shellsec_secret"
+SALT_FILE="~/.shellsec_salt"
+
+NUMERIC="1234567890"
+ALPHA_LOWER="qwertyuiopasdfghjklzxcvbnm"
+ALPHA_UPPER=${ALPHA_LOWER^^}
+SYMBOLS='!@#$%^&*()[]{}_+-=\\|;:<>/,.' # no quotes
+POOL="${NUMERIC}${ALPHA_LOWER}${ALPHA_UPPER}${SYMBOLS}"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -69,9 +75,7 @@ usage() {
 # always grabs license from the internet
 license() {
 	wget -q --output-document - "$LICENSE_LINK"
-
 	[ $? -ne 0 ] && printf "${RED}License couldn't be fetched! Check internet connection...${TEXT}\n"
-
 	cleanup
 	exit 0
 }
@@ -164,6 +168,36 @@ getArgs() {
 
 # $1 = password len
 generatePass() {
+	local len=$1
+	local requiredNumbers=$(( $len/5 ))
+	local requiredSymbols=$(( $len/5 ))
+	while :
+	do
+		local pass=$(</dev/urandom tr -dc '[:graph:]' | head -c $len)
+		# this is not implemented too nicely
+		# could be nicer if I would collect numbers and symbols
+		# and maybe randomly spread them out the pass
+		# so it doesn't wait for urandom to find a contiguous string with those conditions
+		local numericCount=$(echo "$pass" | tr -d -c '[:digit:]' | wc -c) # wc could be switched for bash expansion
+		local symbolCount=$(echo "$pass" | tr -d '[:alnum:]' | wc -c)
+		[ $numericCount -gt $requiredNumbers ] && [ $symbolCount -gt $requiredSymbols ] && break
+	done
+	echo "$pass"
+}
+
+# $1 = platform to store pass for
+# $2 = password to store
+storePass() {
+	local platform=$1
+
+}
+
+# $1 = platform to load pass for
+loadPass() {
+	echo $1
+}
+
+printAllPlatforms() {
 	echo $1
 }
 
@@ -173,6 +207,33 @@ shellsec() {
 	[ $USAGE -eq 1 ] && usage
 	[ $LICENSE -eq 1 ] && license
 	[ $COLOR -eq 0 ] && suppressColors
+
+	[ $PASSLEN -ne 0 ] && local pass=$(generatePass "$PASSLEN")
+
+	# 1 -> STORE PASS
+	# 2 -> LOAD PASS
+	# 3 -> PRINT ALL PLATFORMS
+	case "$MODE" in 
+	0)
+		if [ -n "$pass" ]; then printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
+		else usageError "No action chosen!" 
+		fi
+		;;
+	1)
+		[ -z "$pass" ] && read pass
+		storePass "$PLATFORM" "$pass"
+		;;
+	2)
+		local pass=$(loadPass "$PLATFORM")
+		;;
+	3)
+		printAllPlatforms
+		;;
+	*)
+		printf "${RED}Unexpected error has occured. Exiting...${TEXT}\n"
+		exit 1;
+		;;
+	esac
 
 }
 

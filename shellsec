@@ -30,14 +30,10 @@ PLATFORM=""
 
 # === Constants ===
 LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
-SECRET_FILE="~/.shellsec_secret"
-SALT_FILE="~/.shellsec_salt"
 
-NUMERIC="1234567890"
-ALPHA_LOWER="qwertyuiopasdfghjklzxcvbnm"
-ALPHA_UPPER=${ALPHA_LOWER^^}
-SYMBOLS='!@#$%^&*()[]{}_+-=\\|;:<>/,.' # no quotes
-POOL="${NUMERIC}${ALPHA_LOWER}${ALPHA_UPPER}${SYMBOLS}"
+SECRET_FILE="/home/$(whoami)/.shellsec_secret"
+
+ENCRYPTION="aes-256-cbc"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -166,6 +162,11 @@ getArgs() {
 	done
 }
 
+createSecretFile() {
+	touch "$SECRET_FILE"
+	chmod 600 "$SECRET_FILE"
+}
+
 # $1 = password len
 generatePass() {
 	local len=$1
@@ -182,14 +183,34 @@ generatePass() {
 		local symbolCount=$(echo "$pass" | tr -d '[:alnum:]' | wc -c)
 		[ $numericCount -gt $requiredNumbers ] && [ $symbolCount -gt $requiredSymbols ] && break
 	done
-	echo "$pass"
+	printf "%s" "$pass"
+}
+
+# $1 = platform to saerch for
+platformExists() {
+	local platform=$1
+	local allPlatforms=$(printAllPlatforms)
+	echo "$allPlatforms" | grep -oP -- "$platform" 1>/dev/null 2>&1
+	return $?
 }
 
 # $1 = platform to store pass for
 # $2 = password to store
 storePass() {
 	local platform=$1
+	local password=$2
+	
+	if [ ! -f "$SECRET_FILE" ]; then
+		createSecretFile
+	else
+		echo "Checking if platform already saved..." 1>&2
+		platformExists "$platform"
+		[ $? -eq 0 ] \
+			&& printf "${RED}Password already saved for platform $platform${TEXT}!\n" && return 1
+	fi
 
+	
+	printf "%s " "$platform $password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
 }
 
 # $1 = platform to load pass for
@@ -198,12 +219,13 @@ loadPass() {
 }
 
 printAllPlatforms() {
-	echo $1
+	[ ! -f "$SECRET_FILE" ] && printf "${RED}No password file found!${TEXT}\n" && return 1
+	cat "$SECRET_FILE" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d | sed -nr 's/(^\S+).+$/\1/p'
 }
 
 # does all the magic
 shellsec() {
-	
+
 	[ $USAGE -eq 1 ] && usage
 	[ $LICENSE -eq 1 ] && license
 	[ $COLOR -eq 0 ] && suppressColors

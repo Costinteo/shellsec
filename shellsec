@@ -14,6 +14,14 @@
 # |                           GNU GPL v3                            |
 # +-----------------------------------------------------------------+
 
+# TODO
+# warn when trying to change MODE after set
+# copy to clipboard
+# interactive mode
+# replace grep calls with pure bash
+# replacement for tr?
+
+
 # === CLI Arguments ===
 # - Flags -
 MODE=0     # 0 -> NONE, 1 -> STORE, 2 -> LOAD, 3 -> ALL_PLATFORMS
@@ -31,7 +39,7 @@ PLATFORM=""
 # === Constants ===
 LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
 
-SECRET_FILE="/home/$(whoami)/.shellsec_secret"
+SECRET_FILE="/home/$USER/.shellsec_secret"
 
 ENCRYPTION="aes-256-cbc"
 
@@ -94,8 +102,13 @@ suppressColors() {
 # used when parsing args
 usageError() {
 	local msg=$1
-	printf "${RED}$msg${TEXT} See --help for usage.\n"
+	1>&2 printf "${RED}$msg${TEXT} See --help for usage.\n" 
 	exit 1
+}
+
+printError() {
+	local msg=$1
+	1>&2 printf "${RED}$msg${TEXT}\n"
 }
 
 interrupt() {
@@ -149,7 +162,7 @@ getArgs() {
 			PRINT=1
 			;;
 		*)
-			usageError "Unkown argument!"
+			usageError "Unkown argument $1!"
 			;;
 		esac
 
@@ -186,11 +199,10 @@ generatePass() {
 	printf "%s" "$pass"
 }
 
-# $1 = platform to saerch for
+# $1 = platform to search for
 platformExists() {
 	local platform=$1
-	local allPlatforms=$(printAllPlatforms)
-	echo "$allPlatforms" | grep -oP -- "$platform" 1>/dev/null 2>&1
+	grep -ioP -- "$platform" "$SECRET_FILE" 1>/dev/null 2>&1
 	return $?
 }
 
@@ -203,24 +215,28 @@ storePass() {
 	if [ ! -f "$SECRET_FILE" ]; then
 		createSecretFile
 	else
-		echo "Checking if platform already saved..." 1>&2
 		platformExists "$platform"
-		[ $? -eq 0 ] \
-			&& printf "${RED}Password already saved for platform $platform${TEXT}!\n" && return 1
+		[ $? -eq 0 ] && printError "Password already saved for platform $platform!" && return 1
 	fi
 
-	
-	printf "%s " "$platform $password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
+	printf "$platform: " >> "$SECRET_FILE"
+	printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
 }
 
 # $1 = platform to load pass for
 loadPass() {
-	echo $1
+	local platform=$1
+	
+	local line=$(grep -iP "$platform" "$SECRET_FILE")
+	
+	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
+
+	echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
 }
 
 printAllPlatforms() {
-	[ ! -f "$SECRET_FILE" ] && printf "${RED}No password file found!${TEXT}\n" && return 1
-	cat "$SECRET_FILE" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d | sed -nr 's/(^\S+).+$/\1/p'
+	[ ! -f "$SECRET_FILE" ] && printError "No password file found!" && return 1
+	cat "$SECRET_FILE" | grep -oP --color=none -- "^[^:\s]+"
 }
 
 # does all the magic
@@ -244,15 +260,17 @@ shellsec() {
 	1)
 		[ -z "$pass" ] && read pass
 		storePass "$PLATFORM" "$pass"
+		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "$pass\n"
 		;;
 	2)
 		local pass=$(loadPass "$PLATFORM")
+		[ $? -eq 0 ] && printf "$pass\n"
 		;;
 	3)
 		printAllPlatforms
 		;;
 	*)
-		printf "${RED}Unexpected error has occured. Exiting...${TEXT}\n"
+		printError "Unexpected error has occured. Exiting..."
 		exit 1;
 		;;
 	esac

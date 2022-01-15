@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# utility script to set environment variable SHELLSEC_MASTERPASS
+# if set, it unlocks the shellsec vault automatically
+
+printf "Set Master Password: "
+stty -echo
+read SHELLSEC_MASTERPASS
+stty echo
+echo
+
+export SHELLSEC_MASTERPASS
+

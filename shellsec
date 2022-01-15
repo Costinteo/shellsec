@@ -193,8 +193,8 @@ generatePass() {
 		# could be nicer if I would collect numbers and symbols
 		# and maybe randomly spread them out the pass
 		# so it doesn't wait for urandom to find a contiguous string with those conditions
-		local numericCount=$(echo "$pass" | tr -d -c '[:digit:]' | wc -c) # wc could be switched for bash expansion
-		local symbolCount=$(echo "$pass" | tr -d '[:alnum:]' | wc -c)
+		local numericCount=$(tr -d -c '[:digit:]' <<<"$pass" | wc -c) # wc could be switched for bash expansion
+		local symbolCount=$(tr -d '[:alnum:]' <<<"$pass" | wc -c)
 		[ $numericCount -gt $requiredNumbers ] && [ $symbolCount -gt $requiredSymbols ] && break
 	done
 	printf "%s" "$pass"
@@ -205,6 +205,13 @@ platformExists() {
 	local platform=$1
 	grep -ioP -- "$platform" "$SECRET_FILE" 1>/dev/null 2>&1
 	return $?
+}
+
+readSecret() {
+	stty -echo
+	read $1
+	stty echo
+	echo
 }
 
 # $1 = platform to store pass for
@@ -223,14 +230,17 @@ storePass() {
 	# if no password passed, grab pass from stdin
 	if [ -z "$password" ]; then
 		1>&2 printf "Password for $platform: "
-		stty -echo
-		read password
-		stty echo
-		echo
+		readSecret password
 	fi
 
 	printf "$platform: " >> "$SECRET_FILE"
-	printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
+	
+	if [ -z "$SHELLSEC_MASTERPASS" ]; then
+		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
+	else
+		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a >> "$SECRET_FILE"
+	fi
+
 }
 
 # $1 = platform to load pass for
@@ -240,8 +250,12 @@ loadPass() {
 	local line=$(grep -iP "$platform" "$SECRET_FILE")
 	
 	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
-
-	echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
+	
+	if [ -z "$SHELLSEC_MASTERPASS" ]; then
+		echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
+	else
+		echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
+	fi
 }
 
 printAllPlatforms() {

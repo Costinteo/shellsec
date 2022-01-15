@@ -80,7 +80,6 @@ usage() {
 license() {
 	wget -q --output-document - "$LICENSE_LINK"
 	[ $? -ne 0 ] && printf "${RED}License couldn't be fetched! Check internet connection...${TEXT}\n"
-	cleanup
 	exit 0
 }
 
@@ -113,6 +112,8 @@ printError() {
 
 interrupt() {
 	printf "\n${YELLOW}Script interrupted...${TEXT}\n"
+	# if echo disabled, make sure it is re-enabled
+	stty echo
 	exit 1
 }
 
@@ -211,12 +212,21 @@ platformExists() {
 storePass() {
 	local platform=$1
 	local password=$2
-	
+
 	if [ ! -f "$SECRET_FILE" ]; then
 		createSecretFile
 	else
 		platformExists "$platform"
 		[ $? -eq 0 ] && printError "Password already saved for platform $platform!" && return 1
+	fi
+
+	# if no password passed, grab pass from stdin
+	if [ -z "$password" ]; then
+		1>&2 printf "Password for $platform: "
+		stty -echo
+		read password
+		stty echo
+		echo
 	fi
 
 	printf "$platform: " >> "$SECRET_FILE"
@@ -258,7 +268,6 @@ shellsec() {
 		fi
 		;;
 	1)
-		[ -z "$pass" ] && read pass
 		storePass "$PLATFORM" "$pass"
 		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "$pass\n"
 		;;

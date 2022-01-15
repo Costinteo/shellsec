@@ -247,7 +247,7 @@ storePass() {
 loadPass() {
 	local platform=$1
 	
-	local line=$(grep -iP "$platform" "$SECRET_FILE")
+	local line=$(grep -iP -- "^${platform}:" "$SECRET_FILE")
 	
 	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
 	

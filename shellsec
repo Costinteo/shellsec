@@ -316,7 +316,7 @@ shellsec() {
 		;;
 	1)
 		storePass "$PLATFORM" "$pass"
-		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "$pass\n"
+		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
 		;;
 	2)
 		local pass=$(loadPass "$PLATFORM")
@@ -324,6 +324,7 @@ shellsec() {
 		;;
 	3)
 		editPass "$PLATFORM" "$pass"
+		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
 		;;
 	4)
 		deletePass "$PLATFORM"

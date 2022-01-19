@@ -261,9 +261,9 @@ loadPass() {
 	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
 	
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
-		echo "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
+		printf "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
 	else
-		echo "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
+		printf "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
 	fi
 }
 # $1 = platform to edit pass for
@@ -320,7 +320,7 @@ shellsec() {
 		;;
 	2)
 		local pass=$(loadPass "$PLATFORM")
-		[ $? -eq 0 ] && printf "$pass\n"
+		[ $? -eq 0 ] && printf "%s\n" "$pass"
 		;;
 	3)
 		editPass "$PLATFORM" "$pass"

@@ -15,7 +15,6 @@
 # +-----------------------------------------------------------------+
 
 # TODO
-# warn when trying to change MODE after set
 # copy to clipboard
 # interactive mode
 # replace grep calls with pure bash
@@ -24,7 +23,7 @@
 
 # === CLI Arguments ===
 # - Flags -
-MODE=0     # 0 -> NONE, 1 -> STORE, 2 -> LOAD, 3 -> ALL_PLATFORMS
+MODE=0     # 0 -> NONE, 1 -> STORE, 2 -> LOAD, 3 -> EDIT, 4 -> DELETE, 5-> ALL_PLATFORMS
 USAGE=0    # 1 -> PRINT USAGE
 LICENSE=0  # 1 -> PRINT LICENSE
 COLOR=1    # 0 -> COLORS OFF, 1 = COLORS ON
@@ -56,19 +55,21 @@ usage() {
 	cat <<- _end_of_usage
 	Usage: shellsec [OPTIONS]...
 	Bash tool to generate and manage secure passwords.
-	Run without arguments for interactive mode.
+	Run without arguments for interactive mode. [NOT IMPLEMENTED YET]
 
 	Options:
 	    -h, --help                print this text and exit
 	        --license             print license and exit
 	        --no-color            suppress colored output
-	    -p, --pass  <LEN>         generate random pass with <LEN> chars
-	    -s, --store <PLATFORM>    store pass for <PLATFORM>
-	    -l, --load  <PLATFORM>    load pass for <PLATFORM>
-	    -a, --all-platforms       decrypt and print all platforms
-	    -c, --copy                copy to clipboard generated / requested pass
+	    -p, --pass <LEN>          generate random pass with <LEN> chars
+	    -s, --store <PLATFORM>    store pass for <PLATFORM> *
+	    -l, --load <PLATFORM>     load pass for <PLATFORM>
+	    -e, --edit <PLATFORM>     edit pass for <PLATFORM>  *
+	    -d, --delete <PLATFORM>   delete pass for <PLATFORM>
+	    -a, --all-platforms       print all platforms
 	        --print               print pass after generated
 
+	Options marked with "*" will use the generated pass if ran with "-p/--pass".
 	The script is written by Costinteo. <https://github.com/Costinteo>
 	Licensed under GNU GPL v3. <$LICENSE_LINK>
 	_end_of_usage
@@ -151,8 +152,16 @@ getArgs() {
 			MODE=2
 			;;
 
-		"-a"|"--all-platforms")
+		"-e"|"--edit")
 			MODE=3
+			;;
+
+		"-d"|"--delete")
+			MODE=4
+			;;
+
+		"-a"|"--all-platforms")
+			MODE=5
 			;;
 
 		"-c"|"--copy")
@@ -169,7 +178,7 @@ getArgs() {
 
 		# if MODE just read, get PLATFORM along with it, if currently empty
 		# if MODE is 3 -> no PLATFORM argument
-		[ $MODE -gt 0 ] && [ $MODE -lt 3 ] && [ -z "$PLATFORM" ] && PLATFORM=${2,,} && shift
+		[ $MODE -gt 0 ] && [ $MODE -lt 5 ] && [ -z "$PLATFORM" ] && PLATFORM=${2,,} && shift
 
 		shift
 
@@ -203,13 +212,13 @@ generatePass() {
 # $1 = platform to search for
 platformExists() {
 	local platform=$1
-	grep -ioP -- "$platform" "$SECRET_FILE" 1>/dev/null 2>&1
+	grep -ioP -- "^$platform:" "$SECRET_FILE" 1>/dev/null 2>&1
 	return $?
 }
 
 readSecret() {
 	stty -echo
-	read $1
+	read "$1"
 	stty echo
 	echo
 }
@@ -224,7 +233,7 @@ storePass() {
 		createSecretFile
 	else
 		platformExists "$platform"
-		[ $? -eq 0 ] && printError "Password already saved for platform $platform!" && return 1
+		[ $? -eq 0 ] && printError "Password already saved for platform ${platform}!" && return 1
 	fi
 
 	# if no password passed, grab pass from stdin
@@ -252,10 +261,32 @@ loadPass() {
 	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
 	
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
-		echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
+		echo "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
 	else
-		echo $line | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
+		echo "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
 	fi
+}
+# $1 = platform to edit pass for
+# $2 = new password
+editPass() {
+	local platform=$1
+	local password=$2
+	deletePass "$platform"
+	[ $? -ne 0 ] && printError "Password deletion failed unexpectedly!" && return 1
+	storePass "$platform" "$password"
+}
+
+# $1 = platform to delete pass for
+deletePass() {
+	local platform=$1
+
+	[ ! -f "$SECRET_FILE" ] && printError "No password file found, save a password first to generate..." && return 1
+
+	platformExists "$platform"
+	[ $? -ne 0 ] && printError "No password found for platform ${platform}!" && return 1
+
+	sed -ir "/^$platform:/Id" "$SECRET_FILE"
+	1>&2 printf "${YELLOW}Password deleted for platform ${BLUE}${platform}${TEXT}.\n"
 }
 
 printAllPlatforms() {
@@ -274,7 +305,9 @@ shellsec() {
 
 	# 1 -> STORE PASS
 	# 2 -> LOAD PASS
-	# 3 -> PRINT ALL PLATFORMS
+	# 3 -> EDIT PASS
+	# 4 -> DELETE PASS
+	# 5 -> PRINT ALL PLATFORMS
 	case "$MODE" in 
 	0)
 		if [ -n "$pass" ]; then printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
@@ -290,6 +323,12 @@ shellsec() {
 		[ $? -eq 0 ] && printf "$pass\n"
 		;;
 	3)
+		editPass "$PLATFORM" "$pass"
+		;;
+	4)
+		deletePass "$PLATFORM"
+		;;
+	5)
 		printAllPlatforms
 		;;
 	*)

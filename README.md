@@ -31,8 +31,8 @@ Run without arguments for interactive mode. [NOT IMPLEMENTED YET]
 
 Options:
     -h, --help                print this text and exit
-	    --license             print license and exit
-	    --no-color            suppress colored output
+        --license             print license and exit
+        --no-color            suppress colored output
     -p, --pass <LEN>          generate random pass with <LEN> chars
     -s, --store <PLATFORM>    store pass for <PLATFORM> *
     -l, --load <PLATFORM>     load pass for <PLATFORM>

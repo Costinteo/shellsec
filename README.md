@@ -30,16 +30,16 @@ Bash tool to generate and manage secure passwords.
 Run without arguments for interactive mode. [NOT IMPLEMENTED YET]
 
 Options:
-	-h, --help                print this text and exit
-		--license             print license and exit
-		--no-color            suppress colored output
-	-p, --pass <LEN>          generate random pass with <LEN> chars
-	-s, --store <PLATFORM>    store pass for <PLATFORM> *
-	-l, --load <PLATFORM>     load pass for <PLATFORM>
-	-e, --edit <PLATFORM>     edit pass for <PLATFORM>  *
-	-d, --delete <PLATFORM>   delete pass for <PLATFORM>
-	-a, --all-platforms       print all platforms
-		--print               print pass after generated
+    -h, --help                print this text and exit
+	    --license             print license and exit
+	    --no-color            suppress colored output
+    -p, --pass <LEN>          generate random pass with <LEN> chars
+    -s, --store <PLATFORM>    store pass for <PLATFORM> *
+    -l, --load <PLATFORM>     load pass for <PLATFORM>
+    -e, --edit <PLATFORM>     edit pass for <PLATFORM>  *
+    -d, --delete <PLATFORM>   delete pass for <PLATFORM>
+    -a, --all-platforms       print all platforms
+        --print               print pass after generated
 
 Options marked with "*" will use the generated pass if ran with "-p/--pass".
 The script is written by Costinteo. <https://github.com/Costinteo>

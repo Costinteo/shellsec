@@ -82,3 +82,7 @@ This will ask for the password to save and then it will ask for your encryption 
 To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session, that sets an environment variable SHELLSEC_MASTERPASS to the password you input when asked it. This is somewhat dangerous, however, because it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I think this could only happen if someone is PHYSICALLY at your computer, with it unlocked. Please message me if I'm wrong and send in a pull request or open an issue to fix it! :)
 
 To use it simply ``$ source shellsec-setkey`` or ``$ . shellsec-setkey``
+
+## Contributing
+
+If you find bugs (especially security ones), or have any kind of suggestion, I'd love to hear them! Open issues or pull requests and I'll be sure to check them out!

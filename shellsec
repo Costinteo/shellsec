@@ -256,10 +256,11 @@ storePass() {
 loadPass() {
 	local platform=$1
 	
+	platformExists "$platform"
+	[ $? -ne 0 ] && printError "No password found for ${platform}..." && return 1
+	
 	local line=$(grep -iP -- "^${platform}:" "$SECRET_FILE")
-	
-	[ $? -ne 0 ] && printError "No password found for ${platform}..." return 1
-	
+
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
 		printf "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
 	else
@@ -320,7 +321,7 @@ shellsec() {
 		;;
 	2)
 		local pass=$(loadPass "$PLATFORM")
-		[ $? -eq 0 ] && printf "%s\n" "$pass"
+		[ -n "$pass" ] && printf "%s\n" "$pass"
 		;;
 	3)
 		editPass "$PLATFORM" "$pass"

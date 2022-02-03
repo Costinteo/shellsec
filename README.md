@@ -32,7 +32,7 @@ Run without arguments for interactive mode. [NOT IMPLEMENTED YET]
 Options:
     -h, --help                print this text and exit
         --license             print license and exit
-		--version             print version and exit
+        --version             print version and exit
         --no-color            suppress colored output
     -p, --pass <LEN>          generate random pass with <LEN> chars
     -s, --store <PLATFORM>    store pass for <PLATFORM> *

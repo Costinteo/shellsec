@@ -15,6 +15,9 @@
 # +-----------------------------------------------------------------+
 
 # TODO
+# prompt for confirm before deleting
+# add versioning
+# don't download license
 # copy to clipboard
 # interactive mode
 # replace grep calls with pure bash
@@ -41,6 +44,7 @@ LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
 SECRET_FILE="/home/$USER/.shellsec_secret"
 
 ENCRYPTION="aes-256-cbc"
+
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -245,10 +249,11 @@ storePass() {
 	printf "$platform: " >> "$SECRET_FILE"
 	
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
-		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a >> "$SECRET_FILE"
+		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -A >> "$SECRET_FILE"
 	else
-		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a >> "$SECRET_FILE"
+		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -A >> "$SECRET_FILE"
 	fi
+	printf "\n" >> "$SECRET_FILE"
 
 }
 

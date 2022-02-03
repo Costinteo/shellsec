@@ -16,7 +16,6 @@
 
 # TODO
 # prompt for confirm before deleting
-# add versioning
 # don't download license
 # copy to clipboard
 # interactive mode
@@ -29,6 +28,7 @@
 MODE=0     # 0 -> NONE, 1 -> STORE, 2 -> LOAD, 3 -> EDIT, 4 -> DELETE, 5-> ALL_PLATFORMS
 USAGE=0    # 1 -> PRINT USAGE
 LICENSE=0  # 1 -> PRINT LICENSE
+PRINTVER=0 # 1 -> PRINT VERSION
 COLOR=1    # 0 -> COLORS OFF, 1 = COLORS ON
 VERBOSE=0  # 1 -> VERBOSE OUTPUT
 COPY=0     # 1 -> COPY TO CLIPBOARD
@@ -45,6 +45,8 @@ SECRET_FILE="/home/$USER/.shellsec_secret"
 
 ENCRYPTION="aes-256-cbc"
 
+# using semantic versioning <https://semver.org/>
+VERSION="1.0.0"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -64,6 +66,7 @@ usage() {
 	Options:
 	    -h, --help                print this text and exit
 	        --license             print license and exit
+	        --version             print version and exit
 	        --no-color            suppress colored output
 	    -p, --pass <LEN>          generate random pass with <LEN> chars
 	    -s, --store <PLATFORM>    store pass for <PLATFORM> *
@@ -85,6 +88,15 @@ usage() {
 license() {
 	wget -q --output-document - "$LICENSE_LINK"
 	[ $? -ne 0 ] && printf "${RED}License couldn't be fetched! Check internet connection...${TEXT}\n"
+	exit 0
+}
+
+version() {
+	cat <<- _end_of_version
+	shellsec v${VERSION}
+	The script is written by Costinteo. <https://github.com/Costinteo>
+	Licensed under GNU GPL v3. <$LICENSE_LINK>
+	_end_of_version
 	exit 0
 }
 
@@ -135,6 +147,10 @@ getArgs() {
 
 		"--license")
 			LICENSE=1
+			;;
+
+		"--version")
+			PRINTVER=1
 			;;
 
 		"--no-color")
@@ -305,6 +321,7 @@ shellsec() {
 
 	[ $USAGE -eq 1 ] && usage
 	[ $LICENSE -eq 1 ] && license
+	[ $PRINTVER -eq 1 ] && version
 	[ $COLOR -eq 0 ] && suppressColors
 
 	[ $PASSLEN -ne 0 ] && local pass=$(generatePass "$PASSLEN")

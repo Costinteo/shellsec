@@ -23,6 +23,12 @@ sed  # might replace with pure bash alternative
 openssl
 ```
 
+## Installation
+After cloning the repository, run in the same direcory:
+```
+sudo ./install.sh
+```
+
 ## Usage
 ```
 Usage: shellsec [OPTIONS]...

@@ -11,7 +11,7 @@
 
 # shellsec
 
-Simple security tool to generate and manage secure passwords. Can be used a simplistic CLI-based local password manager.
+Simple security tool to **generate** and **manage** secure passwords. Can be used a simplistic CLI-based local password manager.
 
 ## Requirements
 
@@ -21,6 +21,12 @@ tr
 grep # might replace with pure bash alternative
 sed  # might replace with pure bash alternative
 openssl
+```
+
+## Installation
+After cloning the repository, run in the same direcory:
+```
+sudo ./install.sh
 ```
 
 ## Usage
@@ -85,4 +91,4 @@ To use it simply ``$ source shellsec-setkey`` or ``$ . shellsec-setkey``
 
 ## Contributing
 
-If you find bugs (especially security ones), or have any kind of suggestion, I'd love to hear them! Open issues or pull requests and I'll be sure to check them out!
+If you find bugs (*especially security ones*), or have any kind of suggestion, I'd love to hear them! Open issues or pull requests and I'll be sure to check them out!

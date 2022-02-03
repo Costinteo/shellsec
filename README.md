@@ -11,7 +11,7 @@
 
 # shellsec
 
-Simple security tool to generate and manage secure passwords. Can be used a simplistic CLI-based local password manager.
+Simple security tool to generate and manage secure passwords. Can be used as a simplistic CLI-based local password manager.
 
 ## Requirements
 
@@ -32,6 +32,7 @@ Run without arguments for interactive mode. [NOT IMPLEMENTED YET]
 Options:
     -h, --help                print this text and exit
         --license             print license and exit
+		--version             print version and exit
         --no-color            suppress colored output
     -p, --pass <LEN>          generate random pass with <LEN> chars
     -s, --store <PLATFORM>    store pass for <PLATFORM> *
@@ -66,6 +67,12 @@ $ shellsec -p 25 -s Github --print
 Generated pass: 6lBbyb8/cQ2fO30D5y."B`}[2
 ```
 
+To load a password:
+```
+$ shellsec -l Github
+6lBbyb8/cQ2fO30D5y."B`}[2
+```
+
 Let's delete the Github password now:
 ```
 $ shellsec -d Github
@@ -79,7 +86,7 @@ $ shellsec -s Hackerone
 This will ask for the password to save and then it will ask for your encryption key / master password.
 
 
-To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session, that sets an environment variable SHELLSEC_MASTERPASS to the password you input when asked it. This is somewhat dangerous, however, because it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I think this could only happen if someone is PHYSICALLY at your computer, with it unlocked. Please message me if I'm wrong and send in a pull request or open an issue to fix it! :)
+To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session: ``shellsec-setkey``. It asks for your encryption password and sets an environment variable ``SHELLSEC_MASTERPASS`` to the value of your input. This is somewhat dangerous: it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I think this could only happen if someone is PHYSICALLY at your computer, with it unlocked. Please open an issue if I'm wrong, or even send in a pull request! :)
 
 To use it simply ``$ source shellsec-setkey`` or ``$ . shellsec-setkey``
 

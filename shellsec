@@ -62,7 +62,7 @@ RANDOM_SOURCE="/dev/urandom"
 REQUIREMENTS="tr grep sed openssl head"
 
 # using semantic versioning <https://semver.org/>
-VERSION="1.2.0"
+VERSION="1.2.1"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -219,7 +219,11 @@ getArgs() {
 
 		# if MODE just read, get PLATFORM along with it, if currently empty
 		# if MODE is 5 -> no PLATFORM argument
-		[ $MODE -gt 0 ] && [ $MODE -lt 5 ] && [ -z "$PLATFORM" ] && PLATFORM=${2,,} && shift
+		if [ $MODE -gt 0 ] && [ $MODE -lt 5 ] && [ -z "$PLATFORM" ]; then
+			PLATFORM=${2,,}
+			[[ "$PLATFORM" =~ [:] ]] && usageError "Forbidden character in platform name!"
+			shift
+		fi
 
 		shift
 

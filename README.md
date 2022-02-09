@@ -23,6 +23,16 @@ sed  # might replace with pure bash alternative
 openssl
 ```
 
+## Installation
+To install, simply clone the repository and copy the files to somewhere on your ``$PATH``.
+My personal suggestion would be ``/usr/local/bin`` (if you have it on ``$PATH``).
+
+```
+$ git clone https://github.com/Costinteo/shellsec
+$ cd shellsec
+$ sudo cp shellsec* /usr/local/bin/
+```
+
 ## Usage
 ```
 Usage: shellsec [OPTIONS]...
@@ -44,10 +54,10 @@ Options:
 
 Options marked with "*" will use the generated pass if ran with "-p/--pass".
 The script is written by Costinteo. <https://github.com/Costinteo>
-Licensed under GNU GPL v3. <$LICENSE_LINK>
+Licensed under GNU GPL v3+. <https://www.gnu.org/licenses/gpl-3.0.txt>
 ```
 
-Here's some usage examples:
+## Examples
 
 Generate a secure 20 character password using /dev/urandom and print to stdout
 ```
@@ -85,6 +95,13 @@ $ shellsec -s Hackerone
 ```
 This will ask for the password to save and then it will ask for your encryption key / master password.
 
+Let's re-generate a pass for a platform:
+```
+$ shellsec -p 25 -e Discord
+```
+The ``-e/--edit`` option will (currently) delete the old password and replace it with either an input from stdin, or a generated pass if used with ``-p/--pass``.
+
+## Additional notes
 
 To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session: ``shellsec-setkey``. It asks for your encryption password and sets an environment variable ``SHELLSEC_MASTERPASS`` to the value of your input. This is somewhat dangerous: it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I think this could only happen if someone is PHYSICALLY at your computer, with it unlocked. Please open an issue if I'm wrong, or even send in a pull request! :)
 

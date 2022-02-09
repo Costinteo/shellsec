@@ -40,13 +40,12 @@ PLATFORM=""
 
 # === Constants ===
 LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
-
-SECRET_FILE="/home/$USER/.shellsec_secret"
-
+SECRET_FILE="$HOME/.shellsec_secret"
 ENCRYPTION="aes-256-cbc"
+RANDOM_SOURCE="/dev/urandom"
 
 # using semantic versioning <https://semver.org/>
-VERSION="1.0.1"
+VERSION="1.1.0"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -197,7 +196,7 @@ getArgs() {
 		esac
 
 		# if MODE just read, get PLATFORM along with it, if currently empty
-		# if MODE is 3 -> no PLATFORM argument
+		# if MODE is 5 -> no PLATFORM argument
 		[ $MODE -gt 0 ] && [ $MODE -lt 5 ] && [ -z "$PLATFORM" ] && PLATFORM=${2,,} && shift
 
 		shift
@@ -217,13 +216,17 @@ generatePass() {
 	local requiredSymbols=$(( $len/5 ))
 	while :
 	do
-		local pass=$(</dev/urandom tr -dc '[:graph:]' | head -c $len)
+		# generate password until we find one that fits the conditions
+		local pass=$(<"$RANDOM_SOURCE" tr -dc '[:graph:]' | head -c $len)
 		# this is not implemented too nicely
 		# could be nicer if I would collect numbers and symbols
 		# and maybe randomly spread them out the pass
 		# so it doesn't wait for urandom to find a contiguous string with those conditions
-		local numericCount=$(tr -d -c '[:digit:]' <<<"$pass" | wc -c) # wc could be switched for bash expansion
-		local symbolCount=$(tr -d '[:alnum:]' <<<"$pass" | wc -c)
+		local numbers=$(tr -d -c '[:digit:]' <<<"$pass") 
+		local numericCount=${#numbers}
+		local symbols=$(tr -d '[:alnum:]' <<<"$pass")
+		local symbolCount=${#symbols}
+		# if conditions passed -> break
 		[ $numericCount -gt $requiredNumbers ] && [ $symbolCount -gt $requiredSymbols ] && break
 	done
 	printf "%s" "$pass"
@@ -281,11 +284,14 @@ loadPass() {
 	[ $? -ne 0 ] && printError "No password found for ${platform}..." && return 1
 	
 	local line=$(grep -iP -- "^${platform}:" "$SECRET_FILE")
+	
+	# avoid cut
+	local encpass=${line##*: }
 
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
-		printf "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d
+		printf "%s" "$encpass" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -d -A
 	else
-		printf "$line" | cut -d " " -f 2 | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d
+		printf "%s" "$encpass" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -d -A
 	fi
 }
 # $1 = platform to edit pass for

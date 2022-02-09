@@ -27,7 +27,10 @@ cat
 ```
 
 ## Installation
-To install, use the provided Makefile. Simply ``$ make install`` to install and ``$ make uninstall`` to remove shellsec. By default, shellsec will install in ``/usr/local/bin``. This can be changed by running ``$ make INSTALL_DIR=custom_dir install``, where ``custom_dir`` is the directory you want to install in. Uninstall has to be called with the same dir if you want to uninstall! Also, root privileges might be needed if installing in privileged directories. Use ``sudo``.
+To install, use the provided Makefile. \
+Simply ``$ make install`` to install and ``$ make uninstall`` to remove shellsec. By default, shellsec will install in ``/usr/local/bin``. \ 
+This can be changed by running ``$ make INSTALL_DIR=custom_dir install``, where ``custom_dir`` is the directory you want to install in. Uninstall has to be called with the same dir, if you want to uninstall! \
+Also, root privileges might be needed if installing in privileged directories. Use ``sudo``.
 
 ```
 $ git clone https://github.com/Costinteo/shellsec

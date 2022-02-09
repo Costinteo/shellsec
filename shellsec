@@ -11,8 +11,24 @@
 # |        Bash tool to generate and manage secure passwords        | 
 # |                                                                 |
 # |                  https://github.com/Costinteo                   |
-# |                           GNU GPL v3                            |
+# |                          GNU GPL v3+                            |
 # +-----------------------------------------------------------------+
+
+# Copyright (c) 2022 Costinteo
+#
+# shellsec is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as 
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# shellsec is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License 
+# along with this program. If not, see <https://www.gnu.org/licenses/>. 
+
 
 # TODO
 # prompt for confirm before deleting
@@ -78,7 +94,7 @@ usage() {
 
 	Options marked with "*" will use the generated pass if ran with "-p/--pass".
 	The script is written by Costinteo. <https://github.com/Costinteo>
-	Licensed under GNU GPL v3. <$LICENSE_LINK>
+	Licensed under GNU GPL v3+. <$LICENSE_LINK>
 	_end_of_usage
 
 	exit 0
@@ -97,7 +113,7 @@ version() {
 	cat <<- _end_of_version
 	shellsec v${VERSION}
 	The script is written by Costinteo. <https://github.com/Costinteo>
-	Licensed under GNU GPL v3. <$LICENSE_LINK>
+	Licensed under GNU GPL v3+. <$LICENSE_LINK>
 	_end_of_version
 	exit 0
 }

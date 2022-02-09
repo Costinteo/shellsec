@@ -162,59 +162,28 @@ getArgs() {
 	while [ $# -ne 0 ]
 	do
 		case "$1" in
-		"-h"|"--help")
-			USAGE=1
-			;;
-
-		"--license")
-			LICENSE=1
-			;;
-
-		"--version")
-			PRINTVER=1
-			;;
-
-		"--no-color")
-			COLOR=0
-			;;
+		"-h"|"--help")  USAGE=1    ;;
+		"--license")    LICENSE=1  ;;
+		"--version")    PRINTVER=1 ;;
+		"--no-color")   COLOR=0    ;;
 
 		"-p"|"--pass")
 			local numeric='^[0-9]+$'
 			[[ ! "$2" =~ $numeric ]] && usageError "Invalid length for password!"
 			PASSLEN=$2
 			shift
-			;;
+		;;
 
-		"-s"|"--store")
-			MODE=1
-			;;
+		"-s"|"--store")           MODE=1  ;;
+		"-l"|"--load")            MODE=2  ;;
+		"-e"|"--edit")            MODE=3  ;;
+		"-d"|"--delete")          MODE=4  ;;
+		"-a"|"--all-platforms")   MODE=5  ;;
+		"-c"|"--copy")            COPY=1  ;;
+		"--print")                PRINT=1 ;;
 
-		"-l"|"--load")
-			MODE=2
-			;;
+		*)  usageError "Unkown argument $1!" ;;
 
-		"-e"|"--edit")
-			MODE=3
-			;;
-
-		"-d"|"--delete")
-			MODE=4
-			;;
-
-		"-a"|"--all-platforms")
-			MODE=5
-			;;
-
-		"-c"|"--copy")
-			COPY=1
-			;;
-
-		"--print")
-			PRINT=1
-			;;
-		*)
-			usageError "Unkown argument $1!"
-			;;
 		esac
 
 		# if MODE just read, get PLATFORM along with it, if currently empty
@@ -381,16 +350,9 @@ shellsec() {
 		editPass "$PLATFORM" "$pass"
 		[ $? -eq 0 ] && [ $PRINT -eq 1 ] && printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
 		;;
-	4)
-		deletePass "$PLATFORM"
-		;;
-	5)
-		printAllPlatforms
-		;;
-	*)
-		printError "Unexpected error has occured. Exiting..."
-		exit 1
-		;;
+	4)  deletePass "$PLATFORM"  ;;
+	5)  printAllPlatforms  ;;
+	*)  printError "Unexpected error has occured. Exiting..." && exit 1 ;;
 	esac
 
 }

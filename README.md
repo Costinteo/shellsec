@@ -18,9 +18,10 @@ Simple security tool to generate and manage secure passwords. Can be used as a s
 ```
 bash
 tr
+openssl
 grep # might replace with pure bash alternative
 sed  # might replace with pure bash alternative
-openssl
+head # might replace with pure bash alternative
 ```
 
 ## Installation

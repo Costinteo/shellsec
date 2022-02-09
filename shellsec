@@ -59,7 +59,7 @@ LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
 SECRET_FILE="$HOME/.shellsec_secret"
 ENCRYPTION="aes-256-cbc"
 RANDOM_SOURCE="/dev/urandom"
-REQUIREMENTS="tr grep sed openssl head"
+REQUIREMENTS="cat tr grep sed openssl head"
 
 # using semantic versioning <https://semver.org/>
 VERSION="1.2.1"

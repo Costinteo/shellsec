@@ -43,9 +43,10 @@ LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
 SECRET_FILE="$HOME/.shellsec_secret"
 ENCRYPTION="aes-256-cbc"
 RANDOM_SOURCE="/dev/urandom"
+REQUIREMENTS="tr grep sed openssl head"
 
 # using semantic versioning <https://semver.org/>
-VERSION="1.1.0"
+VERSION="1.2.0"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -84,7 +85,9 @@ usage() {
 }
 
 # always grabs license from the internet
+# kinda silly but...
 license() {
+	# wget will not be counted as a requirement to run
 	wget -q --output-document - "$LICENSE_LINK"
 	[ $? -ne 0 ] && printf "${RED}License couldn't be fetched! Check internet connection...${TEXT}\n"
 	exit 0
@@ -100,8 +103,11 @@ version() {
 }
 
 checkReqs() {
-	openssl version 1>/dev/null 2>&1
-	[ $? -ne 0 ] && printf "${RED}openssl is not installed...${TEXT}\n" && exit 1
+	for req in $REQUIREMENTS
+	do
+		command -v "$req" 1>/dev/null 2>&1
+		[ $? -ne 0 ] && printf "${RED}$req is not installed...${TEXT}\n" && exit 1
+	done
 }
 
 suppressColors() {

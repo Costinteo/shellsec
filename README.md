@@ -19,6 +19,7 @@ Simple security tool to generate and manage secure passwords. Can be used as a s
 bash
 tr
 openssl
+xclip [only if you want to copy passwords automatically]
 # might replace the ones below with pure bash alternatives
 grep
 sed
@@ -35,7 +36,7 @@ Also, root privileges might be needed if installing in privileged directories. U
 ```
 $ git clone https://github.com/Costinteo/shellsec
 $ cd shellsec
-$ make install
+$ sudo make install
 ```
 
 Alternatively, copy the files directly to where you want after cloning:
@@ -58,10 +59,11 @@ Options:
     -p, --pass <LEN>          generate random pass with <LEN> chars
     -s, --store <PLATFORM>    store pass for <PLATFORM> *
     -l, --load <PLATFORM>     load pass for <PLATFORM>
-    -e, --edit <PLATFORM>     edit pass for <PLATFORM>  *
+    -e, --edit <PLATFORM>     edit pass for <PLATFORM> *
     -d, --delete <PLATFORM>   delete pass for <PLATFORM>
     -a, --all-platforms       print all platforms
-        --print               print pass after generated
+    -c, --copy                copy pass after generated/loaded
+        --print               print pass after storing/editing
 
 Options marked with "*" will use the generated pass if ran with "-p/--pass".
 The script is written by Costinteo. <https://github.com/Costinteo>

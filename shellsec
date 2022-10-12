@@ -31,6 +31,7 @@
 
 
 # TODO
+# add shell completion for platforms
 # prompt for confirm before deleting
 # don't download license
 # interactive mode
@@ -61,7 +62,7 @@ RANDOM_SOURCE="/dev/urandom"
 REQUIREMENTS="cat tr grep sed openssl head xclip"
 
 # using semantic versioning <https://semver.org/>
-VERSION="1.3.0"
+VERSION="2.0.0"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -118,7 +119,7 @@ version() {
 	exit 0
 }
 
-checkReqs() {
+check_reqs() {
 	for req in $REQUIREMENTS
 	do
 		command -v "$req" 1>/dev/null 2>&1
@@ -126,7 +127,7 @@ checkReqs() {
 	done
 }
 
-suppressColors() {
+suppress_colors() {
 	GREEN=''
 	YELLOW=''
 	RED=''
@@ -137,13 +138,13 @@ suppressColors() {
 
 # prints usage error message in red and exits
 # used when parsing args
-usageError() {
+usage_err() {
 	local msg=$1
 	1>&2 printf "${RED}$msg${TEXT} See --help for usage.\n" 
 	exit 1
 }
 
-printError() {
+err() {
 	local msg=$1
 	1>&2 printf "${RED}$msg${TEXT}\n"
 }
@@ -155,7 +156,7 @@ interrupt() {
 	exit 1
 }
 
-getArgs() {
+get_args() {
 	
 	[ $# -eq 0 ] && usage
 
@@ -169,7 +170,7 @@ getArgs() {
 
 		"-p"|"--pass")
 			local numeric='^[0-9]+$'
-			[[ ! "$2" =~ $numeric ]] && usageError "Invalid length for password!"
+			[[ ! "$2" =~ $numeric ]] && usage_err "Invalid length for password!"
 			PASSLEN=$2
 			shift
 		;;
@@ -182,7 +183,7 @@ getArgs() {
 		"-c"|"--copy")            COPY=1  ;;
 		"--print")                PRINT=1 ;;
 
-		*)  usageError "Unkown argument $1!" ;;
+		*)  usage_err "Unkown argument $1!" ;;
 
 		esac
 
@@ -190,7 +191,7 @@ getArgs() {
 		# if MODE is 5 -> no PLATFORM argument
 		if [ $MODE -gt 0 ] && [ $MODE -lt 5 ] && [ -z "$PLATFORM" ]; then
 			PLATFORM=${2,,}
-			[[ "$PLATFORM" =~ [:] ]] && usageError "Forbidden character in platform name!"
+			[[ "$PLATFORM" =~ [:] ]] && usage_err "Forbidden character in platform name!"
 			shift
 		fi
 
@@ -199,13 +200,13 @@ getArgs() {
 	done
 }
 
-createSecretFile() {
+create_secret_file() {
 	touch "$SECRET_FILE"
 	chmod 600 "$SECRET_FILE"
 }
 
 # $1 = password len
-generatePass() {
+generate_pass() {
 	local len=$1
 	local requiredNumbers=$(( $len/5 ))
 	local requiredSymbols=$(( $len/5 ))
@@ -228,13 +229,13 @@ generatePass() {
 }
 
 # $1 = platform to search for
-platformExists() {
+platform_exists() {
 	local platform=$1
 	grep -ioP -- "^$platform:" "$SECRET_FILE" 1>/dev/null 2>&1
 	return $?
 }
 
-readSecret() {
+read_secret() {
 	stty -echo
 	read "$1"
 	stty echo
@@ -243,21 +244,21 @@ readSecret() {
 
 # $1 = platform to store pass for
 # $2 = password to store
-storePass() {
+store_pass() {
 	local platform=$1
 	local password=$2
 
 	if [ ! -f "$SECRET_FILE" ]; then
-		createSecretFile
+		create_secret_file
 	else
-		platformExists "$platform"
-		[ $? -eq 0 ] && printError "Password already saved for platform ${platform}!" && return 1
+		platform_exists "$platform"
+		[ $? -eq 0 ] && err "Password already saved for platform ${platform}!" && return 1
 	fi
 
 	# if no password passed, grab pass from stdin
 	if [ -z "$password" ]; then
 		1>&2 printf "Password for $platform: "
-		readSecret password
+		read_secret password
 	fi
 
 	printf "$platform: " >> "$SECRET_FILE"
@@ -272,11 +273,11 @@ storePass() {
 }
 
 # $1 = platform to load pass for
-loadPass() {
+load_pass() {
 	local platform=$1
 	
-	platformExists "$platform"
-	[ $? -ne 0 ] && printError "No password found for ${platform}..." && return 1
+	platform_exists "$platform"
+	[ $? -ne 0 ] && err "No password found for ${platform}..." && return 1
 	
 	local line=$(grep -iP -- "^${platform}:" "$SECRET_FILE")
 	
@@ -291,42 +292,42 @@ loadPass() {
 }
 # $1 = platform to edit pass for
 # $2 = new password
-editPass() {
+edit_pass() {
 	local platform=$1
 	local password=$2
-	deletePass "$platform"
-	[ $? -ne 0 ] && printError "Password deletion failed unexpectedly!" && return 1
-	storePass "$platform" "$password"
+	delete_pass "$platform"
+	[ $? -ne 0 ] && err "Password deletion failed unexpectedly!" && return 1
+	store_pass "$platform" "$password"
 }
 
 # $1 = platform to delete pass for
-deletePass() {
+delete_pass() {
 	local platform=$1
 
-	[ ! -f "$SECRET_FILE" ] && printError "No password file found, save a password first to generate..." && return 1
+	[ ! -f "$SECRET_FILE" ] && err "No password file found, save a password first to generate..." && return 1
 
-	platformExists "$platform"
-	[ $? -ne 0 ] && printError "No password found for platform ${platform}!" && return 1
+	platform_exists "$platform"
+	[ $? -ne 0 ] && err "No password found for platform ${platform}!" && return 1
 
 	sed -ir "/^$platform:/Id" "$SECRET_FILE"
 	1>&2 printf "${YELLOW}Password deleted for platform ${BLUE}${platform}${TEXT}.\n"
 }
 
 # $1 = password to print
-printPass() {
+print_pass() {
 	local pass=$1
 	printf "${BLUE}Generated pass:${TEXT} %s\n" "$pass"
 }
 
 # $1 = password to copy
-copyPass() {
+copy_pass() {
 	local pass=$1
 	printf "%s" "$pass" | xclip -selection clipboard
 	printf "${YELLOW}Password copied to clipboard!${TEXT}\n"
 }
 
-printAllPlatforms() {
-	[ ! -f "$SECRET_FILE" ] && printError "No password file found!" && return 1
+print_all_platforms() {
+	[ ! -f "$SECRET_FILE" ] && err "No password file found!" && return 1
 	cat "$SECRET_FILE" | grep -oP --color=none -- "^[^:]+"
 }
 
@@ -336,9 +337,9 @@ shellsec() {
 	[ $USAGE    -eq 1 ] && usage
 	[ $LICENSE  -eq 1 ] && license
 	[ $PRINTVER -eq 1 ] && version
-	[ $COLOR    -eq 0 ] && suppressColors
+	[ $COLOR    -eq 0 ] && suppress_colors
 
-	[ $PASSLEN  -ne 0 ] && local pass=$(generatePass "$PASSLEN")
+	[ $PASSLEN  -ne 0 ] && local pass=$(generate_pass "$PASSLEN")
 	
 	# 1 -> STORE PASS
 	# 2 -> LOAD PASS
@@ -348,36 +349,35 @@ shellsec() {
 	case "$MODE" in 
 	0)
 		if [ -n "$pass" ]; then 
-			printPass "$pass"
-			[ $COPY  -eq 1 ] && copyPass "$pass"
+			print_pass "$pass"
+			[ $COPY  -eq 1 ] && copy_pass "$pass"
 		else 
-			usageError "No action chosen!" 
+			usage_err "No action chosen!" 
 		fi
 		;;
 	1)
-		storePass "$PLATFORM" "$pass"
+		store_pass "$PLATFORM" "$pass"
 		if [ $? -eq 0 ]; then
-			[ $PRINT -eq 1 ] && printPass "$pass"
-			[ $COPY  -eq 1 ] && copyPass "$pass"
+			[ $PRINT -eq 1 ] && print_pass "$pass"
+			[ $COPY  -eq 1 ] && copy_pass "$pass"
 		fi
 		;;
 	2)
-		local pass=$(loadPass "$PLATFORM")
+		local pass=$(load_pass "$PLATFORM")
 		if [ -n "$pass" ]; then
-			printf "%s\n" "$pass"
-			[ $COPY -eq 1 ] && copyPass "$pass"
+			[ $COPY -eq 1 ] && copy_pass "$pass" || printf "%s\n" "$pass"
 		fi
 		;;
 	3)
-		editPass "$PLATFORM" "$pass"
+		edit_pass "$PLATFORM" "$pass"
 		if [ $? -eq 0 ]; then
-			[ $PRINT -eq 1 ] && printPass "$pass"
-			[ $COPY  -eq 1 ] && copyPass "$pass"
+			[ $PRINT -eq 1 ] && print_pass "$pass"
+			[ $COPY  -eq 1 ] && copy_pass "$pass"
 		fi
 		;;
-	4)  deletePass "$PLATFORM"  ;;
-	5)  printAllPlatforms  ;;
-	*)  printError "Unexpected error has occured. Exiting..." && exit 1 ;;
+	4)  delete_pass "$PLATFORM"  ;;
+	5)  print_all_platforms  ;;
+	*)  err "Unexpected error has occured. Exiting..." && exit 1 ;;
 	esac
 
 }
@@ -386,6 +386,6 @@ shellsec() {
 
 trap interrupt SIGINT
 
-checkReqs
-getArgs "$@"
+check_reqs
+get_args "$@"
 shellsec

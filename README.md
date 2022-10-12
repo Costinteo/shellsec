@@ -45,6 +45,9 @@ Alternatively, copy the files directly to where you want after cloning:
 $ cp shellsec* /usr/local/bin/
 ```
 
+shellsec also provides bash auto completion, that you can add by using ``$ make complete``. The auto complete function provided in shellsec-complete will be sourced in your .bashrc. \
+It has to be deleted manually, but it is easily recognisable.
+
 ## Usage
 ```
 Usage: shellsec [OPTIONS]...
@@ -116,7 +119,7 @@ The ``-e/--edit`` option will (currently) delete the old password and replace it
 
 ## Additional notes
 
-To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session: ``shellsec-setkey``. It asks for your encryption password and sets an environment variable ``SHELLSEC_MASTERPASS`` to the value of your input. This is somewhat dangerous: it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I think this could only happen if someone is PHYSICALLY at your computer, with it unlocked. Please open an issue if I'm wrong, or even send in a pull request! :)
+To avoid having to write your master password all the time, I've provided a script that can be sourced in your current terminal session: ``shellsec-setkey``. It asks for your encryption password and sets an environment variable ``SHELLSEC_MASTERPASS`` to the value of your input. This is somewhat dangerous: it can reveal your master password in cleartext to anyone trying to echo it on the same terminal. I'm open to any suggestion on how to improve this.
 
 To use it simply ``$ source shellsec-setkey`` or ``$ . shellsec-setkey``
 

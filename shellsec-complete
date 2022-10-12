@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Copyright (c) 2022 Costinteo
+#
+# This file is part of shellsec.
+#
+# shellsec is free software: you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as 
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# shellsec is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the 
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License 
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+# thanks for the article, iridakos! https://iridakos.com/programming/2018/03/01/bash-programmable-completion-tutorial
+
+# utility script to be included in the user's .bashrc
+# offers autocompletion
+
+# COMPREPLY is a special array containing completions
+_shellsec_complete() {
+	local flags="-h -p -s -l -e -d -a -c --help --license --version --no-color --pass --store --load --edit --delete --all-platforms --copy --print"
+	local platforms=$(shellsec -a | sed 's/\n/ /p')
+	local prev=${COMP_WORDS[-2]}
+	local curr=${COMP_WORDS[-1]}
+
+	case "$prev" in
+	# suggest platforms if using these flags
+	"-l"|"--load"|"-e"|"--edit"|"-d"|"--delete")
+		COMPREPLY=($(compgen -W "$platforms" -- "$curr")) 
+		;;
+
+	# suggest flags if not
+	*)
+		COMPREPLY=($(compgen -W "$flags" -- "$curr"))
+		;;
+	esac
+}
+
+
+complete -F _shellsec_complete shellsec
+

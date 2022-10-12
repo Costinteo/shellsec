@@ -23,13 +23,10 @@ install:
 	@chmod 755 $(INSTALL_DIR)/shellsec-complete
 
 uninstall:
-	@echo Deleting shellsec from $(INSTALL_DIR)...
-	@rm $(INSTALL_DIR)/shellsec
-	@rm $(INSTALL_DIR)/shellsec-setkey
-	@rm $(INSTALL_DIR)/shellsec-complete
-	@if [ -z "$(ls -A $INSTALL_DIR)" ]; then \
-		rmdir $(INSTALL_DIR); echo Directory $(INSTALL_DIR) empty, deleting...; \
-		fi
+	@echo Deleting shellsec...
+	@rm $(shell command -v shellsec)
+	@rm $(shell command -v shellsec-setkey)
+	@rm $(shell command -v shellsec-complete)
 
 # inject bash auto completion for shellsec
 complete:

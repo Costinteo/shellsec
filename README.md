@@ -29,14 +29,16 @@ cat
 
 ## Installation
 To install, use the provided Makefile. \
-Simply ``$ make install`` to install and ``$ make uninstall`` to remove shellsec. By default, shellsec will install in ``/usr/local/bin``. \
-This can be changed by running ``$ make INSTALL_DIR=custom_dir install``, where ``custom_dir`` is the directory you want to install in. Uninstall has to be called with the same dir, if you want to uninstall! \
+By default, shellsec will install in ``/usr/local/bin``. \
+This can be changed by running ``$ make INSTALL_DIR=custom_dir install``, where ``custom_dir`` is the directory you want to install in. \
 Also, root privileges might be needed if installing in privileged directories. Use ``sudo``.
 
 ```
 $ git clone https://github.com/Costinteo/shellsec
 $ cd shellsec
 $ sudo make install
+# to uninstall:
+$ sudo make uninstall
 ```
 
 Alternatively, copy the files directly to where you want after cloning:
@@ -45,7 +47,7 @@ Alternatively, copy the files directly to where you want after cloning:
 $ cp shellsec* /usr/local/bin/
 ```
 
-shellsec also provides bash auto completion, that you can add by using ``$ make complete``. The auto complete function provided in shellsec-complete will be sourced in your .bashrc. \
+shellsec also provides bash auto completion, that you can add by using ``$ make complete``. The auto complete function provided in ``shellsec-complete`` will be sourced in your .bashrc. \
 It has to be deleted manually, but it is easily recognisable.
 
 ## Usage
@@ -85,7 +87,7 @@ Generate a secure 25 character password and save it for platform "Github":
 ```
 $ shellsec -p 25 -s Github
 ```
-This will ask for your encryption key / master password, encrypt the password with it and then save it in ``~/.shellsec_secret``.
+This will ask for your encryption key / master password, then it will encrypt the password with it and then save it in ``~/.shellsec_secret``.
 
 This doesn't print out anything, so let's add "--print":
 ```
@@ -116,6 +118,11 @@ Let's re-generate a pass for a platform:
 $ shellsec -p 25 -e Discord
 ```
 The ``-e/--edit`` option will (currently) delete the old password and replace it with either an input from stdin, or a generated pass if used with ``-p/--pass``.
+
+You can copy the passwords without printing them, when loading with the ``--copy`` flag:
+```
+$ shellsec -l Steam --copy
+```
 
 ## Additional notes
 

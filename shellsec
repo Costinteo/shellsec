@@ -59,10 +59,11 @@ LICENSE_LINK="https://www.gnu.org/licenses/gpl-3.0.txt"
 SECRET_FILE="$HOME/.shellsec_secret"
 ENCRYPTION="aes-256-cbc"
 RANDOM_SOURCE="/dev/urandom"
-REQUIREMENTS="cat tr grep sed openssl head xclip"
+REQUIREMENTS="cat tr grep sed openssl head"
+CLIPBOARD_CMD="xclip -selection clipboard"
 
 # using semantic versioning <https://semver.org/>
-VERSION="2.0.0"
+VERSION="2.1.0"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -322,13 +323,19 @@ print_pass() {
 # $1 = password to copy
 copy_pass() {
 	local pass=$1
-	printf "%s" "$pass" | xclip -selection clipboard
+	printf "%s" "$pass" | $CLIPBOARD_CMD
 	printf "${YELLOW}Password copied to clipboard!${TEXT}\n"
 }
 
 print_all_platforms() {
 	[ ! -f "$SECRET_FILE" ] && err "No password file found!" && return 1
 	cat "$SECRET_FILE" | grep -oP --color=none -- "^[^:]+"
+}
+
+set_clipboard() {
+	# check for WSL
+	uname -r | 1>/dev/null 2>&1 grep -i "Microsoft"
+	[ $? -eq 0 ] && CLIPBOARD_CMD="clip.exe"
 }
 
 # does all the magic
@@ -341,6 +348,8 @@ shellsec() {
 
 	[ $PASSLEN  -ne 0 ] && local pass=$(generate_pass "$PASSLEN")
 	
+	set_clipboard
+
 	# 1 -> STORE PASS
 	# 2 -> LOAD PASS
 	# 3 -> EDIT PASS

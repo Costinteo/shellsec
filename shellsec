@@ -31,7 +31,6 @@
 
 
 # TODO
-# add shell completion for platforms
 # prompt for confirm before deleting
 # don't download license
 # interactive mode
@@ -63,7 +62,7 @@ REQUIREMENTS="cat tr grep sed openssl head"
 CLIPBOARD_CMD="xclip -selection clipboard"
 
 # using semantic versioning <https://semver.org/>
-VERSION="2.1.0"
+VERSION="2.1.1"
 
 # - Colors -
 GREEN='\033[32;01m'
@@ -310,7 +309,7 @@ delete_pass() {
 	platform_exists "$platform"
 	[ $? -ne 0 ] && err "No password found for platform ${platform}!" && return 1
 
-	sed -ir "/^$platform:/Id" "$SECRET_FILE"
+	sed -ri.bak "/^$platform:/Id" "$SECRET_FILE"
 	1>&2 printf "${YELLOW}Password deleted for platform ${BLUE}${platform}${TEXT}.\n"
 }
 

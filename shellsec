@@ -14,8 +14,6 @@
 # |                          GNU GPL v3+                            |
 # +-----------------------------------------------------------------+
 
-# Copyright (c) 2022-2023 Costinteo
-#
 # shellsec is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as 
 # published by the Free Software Foundation, either version 3 of the
@@ -261,13 +259,15 @@ store_pass() {
 		read_secret password
 	fi
 
-	printf "$platform: " >> "$SECRET_FILE"
 	
 	if [ -z "$SHELLSEC_MASTERPASS" ]; then
-		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -A >> "$SECRET_FILE"
+		encpass=$(printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -a -A)
 	else
-		printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -A >> "$SECRET_FILE"
+		encpass=$(printf "%s" "$password" | openssl enc -"$ENCRYPTION" -salt -pbkdf2 -pass env:SHELLSEC_MASTERPASS -a -A)
 	fi
+	[ $? -ne 0 ] && err "OpenSSL error! Exiting without saving password..." && exit 1
+	[ -z "$encpass" ] && err "OpenSSL error! Exiting without saving password..." && exit 1
+	printf "$platform: $encpass" >> "$SECRET_FILE"
 	printf "\n" >> "$SECRET_FILE"
 
 }
